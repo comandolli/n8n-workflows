@@ -1,0 +1,37 @@
+name: deploy-n8n-workflows
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "workflows/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1) Sobe os JSONs para a VPS
+      - name: Upload workflows to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "workflows/*"
+          target: "/root/n8n-import/"
+
+      # 2) Importa/atualiza no container do n8n e ativa
+      - name: Import into n8n container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            N8N=$(docker ps --format '{{.Names}}' | grep n8n)
+            docker exec -u node "$N8N" mkdir -p /home/node/import
+            docker cp /root/n8n-import/. "$N8N":/home/node/import/
+            # importa todos os arquivos .json, sobrescrevendo e ativando
+            docker exec -u node "$N8N" n8n import:workflow --separate --input=/home/node/import --overwrite --activate
