@@ -22,7 +22,7 @@ jobs:
           source: "workflows/*"
           target: "/root/n8n-import/"
 
-      # 2) Importa dentro do container n8n e reinicia
+      # 2) Importa dentro do container n8n sem derrubar o serviço
       - name: Import into n8n container
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -47,7 +47,10 @@ jobs:
             docker exec "$N8N" sh -lc 'mkdir -p /home/node/import'
             docker cp /root/n8n-import/. "$N8N":/home/node/import/
 
-            docker exec "$N8N" n8n import:workflow --separate --input=/home/node/import --overwrite --activate || true
+            # importa e ativa sem reiniciar o container
+            docker exec -u node "$N8N" n8n import:workflow \
+              --separate --input=/home/node/import --overwrite --activate
 
-            docker restart "$N8N"
-            echo "Import/activate finalizados."
+            # limpa arquivos temporários dentro do container (não obrigatório, mas evita acúmulo)
+            docker exec "$N8N" sh -lc 'rm -rf /home/node/import/*'
+            echo "Import/activate finalizados sem reiniciar o n8n."
