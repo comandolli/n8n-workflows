@@ -1,1 +1,37 @@
-hello
+{
+  "name": "oleco-flow",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            { "mode": "everyMinute" }
+          ]
+        }
+      },
+      "id": "cron1",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [300, 280]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { msg: 'Olá da VPS + GitOps' } }];"
+      },
+      "id": "fn1",
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [560, 280]
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [ { "node": "Function", "type": "main", "index": 0 } ]
+      ]
+    }
+  },
+  "active": true
+}
