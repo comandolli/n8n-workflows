@@ -1,0 +1,53 @@
+name: deploy-n8n-workflows
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "workflows/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1) Envia os JSONs para a VPS
+      - name: Upload workflows to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "workflows/*"
+          target: "/root/n8n-import/"
+
+      # 2) Importa dentro do container n8n e reinicia
+      - name: Import into n8n container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            echo "Containers na VPS (nome/portas):"
+            docker ps --format '{{.Names}}\t{{.Ports}}' | sed 's/\t/ /g'
+
+            # seleciona o container certo (evita pegar redis)
+            N8N=$(docker ps --format '{{.Names}}\t{{.Ports}}' \
+              | awk '$1 ~ /^(olecolabs_n8n|mesazap_n8n)\./ && $2 ~ /5678/ {print $1; exit}')
+            if [ -z "${N8N:-}" ]; then
+              echo "ERRO: não encontrei container n8n (olecolabs/mesazap) na porta 5678."
+              exit 1
+            fi
+            echo "Usando container: $N8N"
+
+            mkdir -p /root/n8n-import
+            docker exec "$N8N" sh -lc 'mkdir -p /home/node/import'
+            docker cp /root/n8n-import/. "$N8N":/home/node/import/
+
+            docker exec "$N8N" n8n import:workflow --separate --input=/home/node/import --overwrite --activate || true
+
+            docker restart "$N8N"
+            echo "Import/activate finalizados."
