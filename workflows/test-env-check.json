@@ -29,5 +29,10 @@
       ]
     }
   },
-  "active": false
+  "active": false,
+  "id": "TestEnvCheck",
+  "versionId": "4d7c4b67-7858-4947-98c6-f2fb60a03743",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
 }

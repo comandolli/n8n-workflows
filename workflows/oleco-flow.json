@@ -1,13 +1,25 @@
 {
+  "id": 1001,
   "name": "oleco-flow",
   "nodes": [
     {
-      "parameters": { "triggerTimes": { "item": [ { "mode": "everyMinute" } ] } },
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
       "id": "cron1",
       "name": "Cron",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [300, 280]
+      "position": [
+        300,
+        280
+      ]
     },
     {
       "parameters": {
@@ -17,12 +29,28 @@
       "name": "Function",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [560, 280]
+      "position": [
+        560,
+        280
+      ]
     }
   ],
   "connections": {
-    "Cron": { "main": [ [ { "node": "Function", "type": "main", "index": 0 } ] ] }
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "active": true
+  "active": true,
+  "versionId": "4ba18ca8-ec80-49f6-8cda-5903b7e87f59",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
 }
-
