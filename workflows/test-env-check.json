@@ -1,0 +1,33 @@
+{
+  "name": "test-env-check",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-200, 280]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { message: 'Pipeline is working! Trigger reached the Function node.' } }];"
+      },
+      "id": "fn1",
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [80, 280]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          { "node": "Function", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "active": false
+}
