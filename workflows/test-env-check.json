@@ -11,7 +11,7 @@
     },
     {
       "parameters": {
-        "functionCode": "return [{ json: { message: 'Pipeline is working! Trigger reached the Function node.' } }];"
+        "functionCode": "return [{ json: { message: 'Pipeline still running sem reiniciar.' } }];"
       },
       "id": "fn1",
       "name": "Function",
