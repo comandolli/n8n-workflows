@@ -37,11 +37,23 @@ jobs:
             echo "Containers na VPS (nome/portas):"
             docker ps --format '{{.Names}}\t{{.Ports}}' | sed 's/\t/ /g'
 
-            # seleciona o container que expõe a porta 5678 (n8n padrão)
-            N8N=$(docker ps --format '{{.Names}}\t{{.Ports}}' \
-              | awk '$2 ~ /5678->/ {print $1; exit}')
+            # permite override via variável de ambiente (ex: secret N8N_CONTAINER)
+            if [ -n "${N8N_CONTAINER:-}" ]; then
+              N8N="$N8N_CONTAINER"
+            else
+              # tenta primeiro containers com a porta publicada externamente
+              N8N=$(docker ps --format '{{.Names}}\t{{.Ports}}' \
+                | awk '$1 ~ /n8n/ && $2 ~ /5678->/ {print $1; exit}')
+
+              # fallback para containers swarm que só mostram 5678/tcp
+              if [ -z "${N8N:-}" ]; then
+                N8N=$(docker ps --format '{{.Names}}\t{{.Ports}}' \
+                  | awk '$1 ~ /n8n/ && $2 ~ /5678\/tcp/ {print $1; exit}')
+              fi
+            fi
+
             if [ -z "${N8N:-}" ]; then
-              echo "ERRO: não encontrei container com a porta 5678 exposta."
+              echo "ERRO: não encontrei container n8n (ajuste a variável N8N_CONTAINER)."
               exit 1
             fi
             echo "Usando container: $N8N"
