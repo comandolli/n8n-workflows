@@ -5,6 +5,8 @@ on:
     branches: [ "main" ]
     paths:
       - "workflows/**"
+      - ".github/workflows/deploy-n8n-workflows.yml"
+  workflow_dispatch:
 
 jobs:
   deploy:
