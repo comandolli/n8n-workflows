@@ -31,14 +31,15 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -euo pipefail
+            set -x
             echo "Containers na VPS (nome/portas):"
             docker ps --format '{{.Names}}\t{{.Ports}}' | sed 's/\t/ /g'
 
-            # seleciona o container certo (evita pegar redis)
+            # seleciona o container que expõe a porta 5678 (n8n padrão)
             N8N=$(docker ps --format '{{.Names}}\t{{.Ports}}' \
-              | awk '$1 ~ /^(olecolabs_n8n|mesazap_n8n)\./ && $2 ~ /5678/ {print $1; exit}')
+              | awk '$2 ~ /5678->/ {print $1; exit}')
             if [ -z "${N8N:-}" ]; then
-              echo "ERRO: não encontrei container n8n (olecolabs/mesazap) na porta 5678."
+              echo "ERRO: não encontrei container com a porta 5678 exposta."
               exit 1
             fi
             echo "Usando container: $N8N"
@@ -47,10 +48,15 @@ jobs:
             docker exec "$N8N" sh -lc 'mkdir -p /home/node/import'
             docker cp /root/n8n-import/. "$N8N":/home/node/import/
 
-            # importa e ativa sem reiniciar o container
-            docker exec -u node "$N8N" n8n import:workflow \
+            # detecta se o usuário node existe, senão roda como padrão do container
+            if docker exec "$N8N" sh -lc 'id -u node >/dev/null 2>&1'; then
+              EXEC_USER="-u node"
+            else
+              EXEC_USER=""
+            fi
+
+            docker exec $EXEC_USER "$N8N" n8n import:workflow \
               --separate --input=/home/node/import --overwrite --activate
 
-            # limpa arquivos temporários dentro do container (não obrigatório, mas evita acúmulo)
-            docker exec "$N8N" sh -lc 'rm -rf /home/node/import/*'
+            docker exec $EXEC_USER "$N8N" sh -lc 'rm -rf /home/node/import/*' || true
             echo "Import/activate finalizados sem reiniciar o n8n."
