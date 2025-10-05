@@ -2,13 +2,7 @@
   "name": "oleco-flow",
   "nodes": [
     {
-      "parameters": {
-        "triggerTimes": {
-          "item": [
-            { "mode": "everyMinute" }
-          ]
-        }
-      },
+      "parameters": { "triggerTimes": { "item": [ { "mode": "everyMinute" } ] } },
       "id": "cron1",
       "name": "Cron",
       "type": "n8n-nodes-base.cron",
@@ -27,11 +21,7 @@
     }
   ],
   "connections": {
-    "Cron": {
-      "main": [
-        [ { "node": "Function", "type": "main", "index": 0 } ]
-      ]
-    }
+    "Cron": { "main": [ [ { "node": "Function", "type": "main", "index": 0 } ] ] }
   },
   "active": true
 }
